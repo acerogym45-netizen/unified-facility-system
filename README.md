@@ -98,8 +98,32 @@ PIN: bdxi2026
 
 ## 🌐 배포 URL
 
-- **Production**: https://unified-facility-system.vercel.app
+- **GitHub Repository**: https://github.com/acerogym45-netizen/unified-facility-system
+- **Production**: https://unified-facility-system.vercel.app (배포 예정)
 - **Supabase**: https://awqatgkfrzusbidzosrx.supabase.co
+
+## 🚀 Vercel 배포 방법
+
+### 1. GitHub 연동 배포 (권장)
+
+1. [Vercel 대시보드](https://vercel.com/dashboard)에 로그인
+2. "Add New" → "Project" 클릭
+3. `acerogym45-netizen/unified-facility-system` 저장소 선택
+4. "Deploy" 클릭 (설정 변경 불필요)
+5. 배포 완료 후 URL 확인
+
+### 2. CLI 배포 (선택)
+
+```bash
+# 1. Vercel 로그인
+npx vercel login
+
+# 2. 프로젝트 배포
+cd /home/user/unified-facility-system
+npx vercel --prod
+
+# 3. 배포 URL 확인
+```
 
 ## 📊 데이터베이스 구조
 
