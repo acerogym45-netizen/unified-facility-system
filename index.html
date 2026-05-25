@@ -15,6 +15,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     <script src="shared-config.js"></script>
+    <script src="unified-complete.js"></script>
     
     <style>
         body {
@@ -191,6 +192,48 @@
                             class="sidebar-item w-full text-left px-4 py-3 rounded-lg flex items-center space-x-3" data-section="notices">
                         <i class="fas fa-bullhorn"></i>
                         <span>공지사항</span>
+                    </button>
+
+                    <!-- 구역 관리 -->
+                    <div class="pt-4 pb-2 px-4 text-xs font-semibold text-gray-500 uppercase">구역 관리</div>
+                    <button onclick="unifiedApp.showSection('areas')" 
+                            class="sidebar-item w-full text-left px-4 py-3 rounded-lg flex items-center space-x-3" data-section="areas">
+                        <i class="fas fa-map-marked-alt"></i>
+                        <span>구역 관리</span>
+                    </button>
+
+                    <!-- 작업 관리 -->
+                    <div class="pt-4 pb-2 px-4 text-xs font-semibold text-gray-500 uppercase">작업 관리</div>
+                    <button onclick="unifiedApp.showSection('work-gallery')" 
+                            class="sidebar-item w-full text-left px-4 py-3 rounded-lg flex items-center space-x-3" data-section="work-gallery">
+                        <i class="fas fa-images"></i>
+                        <span>작업 갤러리</span>
+                    </button>
+                    <button onclick="unifiedApp.showSection('work-logs')" 
+                            class="sidebar-item w-full text-left px-4 py-3 rounded-lg flex items-center space-x-3" data-section="work-logs">
+                        <i class="fas fa-clipboard-list"></i>
+                        <span>업무 일지</span>
+                    </button>
+
+                    <!-- 회계 관리 -->
+                    <div class="pt-4 pb-2 px-4 text-xs font-semibold text-gray-500 uppercase">회계 관리</div>
+                    <button onclick="unifiedApp.showSection('settlements')" 
+                            class="sidebar-item w-full text-left px-4 py-3 rounded-lg flex items-center space-x-3" data-section="settlements">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                        <span>정산서</span>
+                    </button>
+                    <button onclick="unifiedApp.showSection('payslips')" 
+                            class="sidebar-item w-full text-left px-4 py-3 rounded-lg flex items-center space-x-3" data-section="payslips">
+                        <i class="fas fa-money-check-alt"></i>
+                        <span>급여명세서</span>
+                    </button>
+
+                    <!-- 서류 관리 -->
+                    <div class="pt-4 pb-2 px-4 text-xs font-semibold text-gray-500 uppercase">서류 관리</div>
+                    <button onclick="unifiedApp.showSection('documents')" 
+                            class="sidebar-item w-full text-left px-4 py-3 rounded-lg flex items-center space-x-3" data-section="documents">
+                        <i class="fas fa-folder-open"></i>
+                        <span>서류 보관함</span>
                     </button>
                 </nav>
             </aside>
@@ -553,6 +596,167 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- 구역 관리 섹션 -->
+                <div id="section-areas" class="section-content" style="display:none;">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">구역 관리</h2>
+                        <button onclick="unifiedApp.openAreaModal()" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all">
+                            <i class="fas fa-plus mr-2"></i>구역 추가
+                        </button>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">구역명</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">설명</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">QR코드</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">상태</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">관리</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="areaTableBody" class="divide-y divide-gray-200">
+                                    <!-- 동적 로딩 -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 작업 갤러리 섹션 -->
+                <div id="section-work-gallery" class="section-content" style="display:none;">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">작업 갤러리</h2>
+                        <button onclick="unifiedApp.openWorkGalleryModal()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all">
+                            <i class="fas fa-plus mr-2"></i>작업 사진 추가
+                        </button>
+                    </div>
+                    
+                    <div id="workGalleryContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        <!-- 동적 로딩 (그리드 레이아웃) -->
+                    </div>
+                </div>
+
+                <!-- 업무 일지 섹션 -->
+                <div id="section-work-logs" class="section-content" style="display:none;">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">업무 일지</h2>
+                        <button onclick="unifiedApp.openWorkLogModal()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all">
+                            <i class="fas fa-plus mr-2"></i>일지 작성
+                        </button>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">작업일</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">작업자</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">작업 유형</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">내용</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">관리</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="workLogTableBody" class="divide-y divide-gray-200">
+                                    <!-- 동적 로딩 -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 서류 보관함 섹션 -->
+                <div id="section-documents" class="section-content" style="display:none;">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">서류 보관함</h2>
+                        <button onclick="unifiedApp.openDocumentModal()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all">
+                            <i class="fas fa-plus mr-2"></i>서류 추가
+                        </button>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">제목</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">분류</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">파일 유형</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">업로드일</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">관리</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="documentTableBody" class="divide-y divide-gray-200">
+                                    <!-- 동적 로딩 -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 정산서 관리 섹션 -->
+                <div id="section-settlements" class="section-content" style="display:none;">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">정산서 관리</h2>
+                        <button onclick="unifiedApp.openSettlementModal()" class="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-all">
+                            <i class="fas fa-plus mr-2"></i>정산서 추가
+                        </button>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">월</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">분류</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">금액</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">지급 상태</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">관리</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="settlementTableBody" class="divide-y divide-gray-200">
+                                    <!-- 동적 로딩 -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 급여명세서 관리 섹션 -->
+                <div id="section-payslips" class="section-content" style="display:none;">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">급여명세서 관리</h2>
+                        <button onclick="unifiedApp.openPayslipModal()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all">
+                            <i class="fas fa-plus mr-2"></i>급여명세서 추가
+                        </button>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">지급월</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">직원명</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">기본급</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">실수령액</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">지급 상태</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">관리</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="payslipTableBody" class="divide-y divide-gray-200">
+                                    <!-- 동적 로딩 -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
             </main>
         </div>
     </div>
@@ -574,669 +778,6 @@
         </div>
     </div>
 
-    <script>
-        // 통합 애플리케이션
-        const unifiedApp = {
-            sb: null,
-            currentUser: null,
-            employees: [],
-            members: [],
-            purchases: [],
-            vacations: [],
-            instructors: [],
-            programs: [],
-            inquiries: [],
-            notices: [],
-            charts: {},
-
-            init: async function() {
-                console.log('🚀 통합 시스템 초기화');
-                this.sb = createSharedSupabaseClient();
-                this.updateClock();
-                setInterval(() => this.updateClock(), 1000);
-            },
-
-            login: function() {
-                const pin = document.getElementById('loginPin').value;
-                if (pin === 'admin2026' || pin === 'bdxi2026') {
-                    document.getElementById('loginScreen').style.display = 'none';
-                    document.getElementById('mainDashboard').style.display = 'block';
-                    this.loadDashboard();
-                } else {
-                    alert('❌ 잘못된 PIN입니다.');
-                }
-            },
-
-            logout: function() {
-                if (confirm('로그아웃 하시겠습니까?')) {
-                    document.getElementById('mainDashboard').style.display = 'none';
-                    document.getElementById('loginScreen').style.display = 'flex';
-                    document.getElementById('loginPin').value = '';
-                }
-            },
-
-            showSection: function(sectionName) {
-                // 모든 섹션 숨기기
-                document.querySelectorAll('.section-content').forEach(el => el.style.display = 'none');
-                
-                // 선택된 섹션 표시
-                document.getElementById('section-' + sectionName).style.display = 'block';
-                
-                // 사이드바 활성화
-                document.querySelectorAll('.sidebar-item').forEach(el => {
-                    el.classList.remove('sidebar-active');
-                });
-                const sectionBtn = document.querySelector(`[data-section="${sectionName}"]`);
-                if (sectionBtn) sectionBtn.classList.add('sidebar-active');
-
-                // 섹션별 데이터 로드
-                if (sectionName === 'employees') this.loadEmployees();
-                if (sectionName === 'members') this.loadMembers();
-                if (sectionName === 'attendance') this.loadAttendance();
-                if (sectionName === 'purchases') this.loadPurchases();
-                if (sectionName === 'vacations') this.loadVacations();
-                if (sectionName === 'instructors') this.loadInstructors();
-                if (sectionName === 'programs') this.loadPrograms();
-                if (sectionName === 'inquiries') this.loadInquiries();
-                if (sectionName === 'notices') this.loadNotices();
-            },
-
-            updateClock: function() {
-                const now = new Date();
-                const timeStr = now.toLocaleString('ko-KR', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit'
-                });
-                const clockEl = document.getElementById('clock');
-                if (clockEl) clockEl.textContent = timeStr;
-            },
-
-            loadDashboard: async function() {
-                console.log('📊 대시보드 로드');
-                await this.loadStats();
-                this.loadCharts();
-            },
-
-            loadStats: async function() {
-                try {
-                    // 직원 수
-                    const { count: empCount } = await this.sb
-                        .from('employees')
-                        .select('*', { count: 'exact', head: true });
-                    document.getElementById('stat-employees').textContent = empCount || 0;
-
-                    // 회원 수
-                    const { count: memCount } = await this.sb
-                        .from('members')
-                        .select('*', { count: 'exact', head: true });
-                    document.getElementById('stat-members').textContent = memCount || 0;
-
-                    // 오늘 출석
-                    const today = new Date().toISOString().split('T')[0];
-                    const { count: attCount } = await this.sb
-                        .from('attendance_records')
-                        .select('*', { count: 'exact', head: true })
-                        .eq('date', today);
-                    document.getElementById('stat-attendance').textContent = attCount || 0;
-
-                    // 미처리 문의
-                    const { count: inqCount } = await this.sb
-                        .from('inquiries')
-                        .select('*', { count: 'exact', head: true })
-                        .eq('status', 'pending');
-                    document.getElementById('stat-inquiries').textContent = inqCount || 0;
-
-                } catch (err) {
-                    console.error('통계 로드 실패:', err);
-                }
-            },
-
-            loadCharts: function() {
-                // 주간 출석 차트
-                const weeklyCtx = document.getElementById('weeklyChart');
-                if (weeklyCtx && !this.charts.weekly) {
-                    this.charts.weekly = new Chart(weeklyCtx, {
-                        type: 'line',
-                        data: {
-                            labels: ['월', '화', '수', '목', '금', '토', '일'],
-                            datasets: [{
-                                label: '출석 인원',
-                                data: [12, 19, 15, 17, 14, 21, 18],
-                                borderColor: '#667eea',
-                                backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                                tension: 0.4
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: { legend: { display: false } }
-                        }
-                    });
-                }
-
-                // 시설별 현황 차트
-                const facilityCtx = document.getElementById('facilityChart');
-                if (facilityCtx && !this.charts.facility) {
-                    this.charts.facility = new Chart(facilityCtx, {
-                        type: 'doughnut',
-                        data: {
-                            labels: ['직원 (ERP)', '회원 (CRM)'],
-                            datasets: [{
-                                data: [12, 45],
-                                backgroundColor: ['#667eea', '#764ba2']
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false
-                        }
-                    });
-                }
-            },
-
-            loadEmployees: async function() {
-                console.log('👥 직원 목록 로드');
-                try {
-                    const { data, error } = await this.sb
-                        .from('employees')
-                        .select('*')
-                        .order('name');
-                    
-                    if (error) throw error;
-                    this.employees = data || [];
-                    this.renderEmployees();
-                } catch (err) {
-                    console.error('직원 로드 실패:', err);
-                    this.employees = [];
-                    this.renderEmployees();
-                }
-            },
-
-            renderEmployees: function() {
-                const tbody = document.getElementById('employeeTableBody');
-                if (!tbody) return;
-
-                if (this.employees.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">등록된 직원이 없습니다.</td></tr>';
-                    return;
-                }
-
-                tbody.innerHTML = this.employees.map(emp => `
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4">${emp.name}</td>
-                        <td class="px-6 py-4">${emp.position || '-'}</td>
-                        <td class="px-6 py-4">${emp.phone || '-'}</td>
-                        <td class="px-6 py-4"><code class="text-xs bg-gray-100 px-2 py-1 rounded">${emp.qr_code || '-'}</code></td>
-                        <td class="px-6 py-4">
-                            <span class="px-2 py-1 text-xs rounded-full ${emp.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
-                                ${emp.is_active ? '재직' : '퇴사'}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <button onclick="unifiedApp.editEmployee('${emp.id}')" class="text-blue-600 hover:text-blue-800 mr-2">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button onclick="unifiedApp.deleteEmployee('${emp.id}')" class="text-red-600 hover:text-red-800">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `).join('');
-            },
-
-            loadMembers: async function() {
-                console.log('👥 회원 목록 로드');
-                try {
-                    const { data, error } = await this.sb
-                        .from('members')
-                        .select('*')
-                        .order('name');
-                    
-                    if (error) throw error;
-                    this.members = data || [];
-                    this.renderMembers();
-                } catch (err) {
-                    console.error('회원 로드 실패:', err);
-                    this.members = [];
-                    this.renderMembers();
-                }
-            },
-
-            renderMembers: function() {
-                const tbody = document.getElementById('memberTableBody');
-                if (!tbody) return;
-
-                if (this.members.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">등록된 회원이 없습니다.</td></tr>';
-                    return;
-                }
-
-                tbody.innerHTML = this.members.map(mem => `
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4">${mem.name}</td>
-                        <td class="px-6 py-4">${mem.phone || '-'}</td>
-                        <td class="px-6 py-4">${mem.membership_type || '-'}</td>
-                        <td class="px-6 py-4">${mem.start_date || '-'} ~ ${mem.end_date || '-'}</td>
-                        <td class="px-6 py-4">
-                            <span class="px-2 py-1 text-xs rounded-full ${mem.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
-                                ${mem.is_active ? '활동' : '만료'}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <button onclick="unifiedApp.editMember('${mem.id}')" class="text-blue-600 hover:text-blue-800 mr-2">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button onclick="unifiedApp.deleteMember('${mem.id}')" class="text-red-600 hover:text-red-800">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `).join('');
-            },
-
-            loadAttendance: function() {
-                console.log('📅 출석 현황 로드');
-                this.switchAttendanceTab('employee');
-            },
-
-            switchAttendanceTab: function(type) {
-                document.getElementById('tab-employee').classList.remove('tab-active');
-                document.getElementById('tab-employee').classList.add('tab-inactive');
-                document.getElementById('tab-member').classList.remove('tab-active');
-                document.getElementById('tab-member').classList.add('tab-inactive');
-                
-                if (type === 'employee') {
-                    document.getElementById('tab-employee').classList.add('tab-active');
-                    document.getElementById('tab-employee').classList.remove('tab-inactive');
-                    document.getElementById('attendance-content').innerHTML = '<p class="text-gray-600">직원 출퇴근 기록 조회 기능 (데이터베이스 연동 완료)</p>';
-                } else {
-                    document.getElementById('tab-member').classList.add('tab-active');
-                    document.getElementById('tab-member').classList.remove('tab-inactive');
-                    document.getElementById('attendance-content').innerHTML = '<p class="text-gray-600">회원 출석 기록 조회 기능 (데이터베이스 연동 완료)</p>';
-                }
-            },
-
-            loadPurchases: async function() {
-                console.log('🛒 구매 목록 로드');
-                try {
-                    const { data, error } = await this.sb
-                        .from('purchases')
-                        .select('*')
-                        .order('created_at', { ascending: false });
-                    
-                    if (error) throw error;
-                    this.purchases = data || [];
-                    this.renderPurchases();
-                } catch (err) {
-                    console.error('구매 로드 실패:', err);
-                    this.purchases = [];
-                    this.renderPurchases();
-                }
-            },
-
-            renderPurchases: function() {
-                const tbody = document.getElementById('purchaseTableBody');
-                if (!tbody) return;
-
-                if (this.purchases.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">구매 요청이 없습니다.</td></tr>';
-                    return;
-                }
-
-                tbody.innerHTML = this.purchases.map(p => `
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4">${p.item_name}</td>
-                        <td class="px-6 py-4">${p.quantity}</td>
-                        <td class="px-6 py-4">${p.requester || '-'}</td>
-                        <td class="px-6 py-4">${p.created_at?.split('T')[0] || '-'}</td>
-                        <td class="px-6 py-4">
-                            <span class="px-2 py-1 text-xs rounded-full status-${p.status}">
-                                ${p.status === 'pending' ? '대기' : p.status === 'approved' ? '승인' : p.status === 'rejected' ? '거절' : '완료'}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <button onclick="unifiedApp.approvePurchase('${p.id}')" class="text-green-600 hover:text-green-800 mr-2">
-                                <i class="fas fa-check"></i>
-                            </button>
-                            <button onclick="unifiedApp.rejectPurchase('${p.id}')" class="text-red-600 hover:text-red-800">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `).join('');
-            },
-
-            loadVacations: async function() {
-                console.log('🏖️ 휴가 목록 로드');
-                try {
-                    const { data, error } = await this.sb
-                        .from('vacations')
-                        .select('*')
-                        .order('created_at', { ascending: false });
-                    
-                    if (error) throw error;
-                    this.vacations = data || [];
-                    this.renderVacations();
-                } catch (err) {
-                    console.error('휴가 로드 실패:', err);
-                    this.vacations = [];
-                    this.renderVacations();
-                }
-            },
-
-            renderVacations: function() {
-                const tbody = document.getElementById('vacationTableBody');
-                if (!tbody) return;
-
-                if (this.vacations.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">휴가 신청이 없습니다.</td></tr>';
-                    return;
-                }
-
-                tbody.innerHTML = this.vacations.map(v => `
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4">${v.employee_name || '-'}</td>
-                        <td class="px-6 py-4">${v.vacation_type || '-'}</td>
-                        <td class="px-6 py-4">${v.start_date || '-'}</td>
-                        <td class="px-6 py-4">${v.end_date || '-'}</td>
-                        <td class="px-6 py-4">
-                            <span class="px-2 py-1 text-xs rounded-full status-${v.status}">
-                                ${v.status === 'pending' ? '대기' : v.status === 'approved' ? '승인' : '거절'}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <button onclick="unifiedApp.approveVacation('${v.id}')" class="text-green-600 hover:text-green-800 mr-2">
-                                <i class="fas fa-check"></i>
-                            </button>
-                            <button onclick="unifiedApp.rejectVacation('${v.id}')" class="text-red-600 hover:text-red-800">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `).join('');
-            },
-
-            loadInstructors: async function() {
-                console.log('👨‍🏫 강사 목록 로드');
-                try {
-                    const { data, error } = await this.sb
-                        .from('instructors')
-                        .select('*')
-                        .order('name');
-                    
-                    if (error) throw error;
-                    this.instructors = data || [];
-                    this.renderInstructors();
-                } catch (err) {
-                    console.error('강사 로드 실패:', err);
-                    this.instructors = [];
-                    this.renderInstructors();
-                }
-            },
-
-            renderInstructors: function() {
-                const tbody = document.getElementById('instructorTableBody');
-                if (!tbody) return;
-
-                if (this.instructors.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">등록된 강사가 없습니다.</td></tr>';
-                    return;
-                }
-
-                tbody.innerHTML = this.instructors.map(i => `
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4">${i.name}</td>
-                        <td class="px-6 py-4">${i.specialty || '-'}</td>
-                        <td class="px-6 py-4">${i.phone || '-'}</td>
-                        <td class="px-6 py-4">${i.email || '-'}</td>
-                        <td class="px-6 py-4">
-                            <span class="px-2 py-1 text-xs rounded-full ${i.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
-                                ${i.is_active ? '활동' : '휴직'}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <button onclick="unifiedApp.editInstructor('${i.id}')" class="text-blue-600 hover:text-blue-800 mr-2">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button onclick="unifiedApp.deleteInstructor('${i.id}')" class="text-red-600 hover:text-red-800">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `).join('');
-            },
-
-            loadPrograms: async function() {
-                console.log('💪 프로그램 목록 로드');
-                try {
-                    const { data, error } = await this.sb
-                        .from('programs')
-                        .select('*')
-                        .order('name');
-                    
-                    if (error) throw error;
-                    this.programs = data || [];
-                    this.renderPrograms();
-                } catch (err) {
-                    console.error('프로그램 로드 실패:', err);
-                    this.programs = [];
-                    this.renderPrograms();
-                }
-            },
-
-            renderPrograms: function() {
-                const tbody = document.getElementById('programTableBody');
-                if (!tbody) return;
-
-                if (this.programs.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">등록된 프로그램이 없습니다.</td></tr>';
-                    return;
-                }
-
-                tbody.innerHTML = this.programs.map(p => `
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4">${p.name}</td>
-                        <td class="px-6 py-4">${p.instructor_name || '-'}</td>
-                        <td class="px-6 py-4">${p.schedule || '-'}</td>
-                        <td class="px-6 py-4">${p.max_participants || '-'}</td>
-                        <td class="px-6 py-4">
-                            <span class="px-2 py-1 text-xs rounded-full ${p.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
-                                ${p.is_active ? '운영중' : '종료'}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <button onclick="unifiedApp.editProgram('${p.id}')" class="text-blue-600 hover:text-blue-800 mr-2">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button onclick="unifiedApp.deleteProgram('${p.id}')" class="text-red-600 hover:text-red-800">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `).join('');
-            },
-
-            loadInquiries: async function() {
-                console.log('💬 문의 목록 로드');
-                try {
-                    const { data, error } = await this.sb
-                        .from('inquiries')
-                        .select('*')
-                        .order('created_at', { ascending: false });
-                    
-                    if (error) throw error;
-                    this.inquiries = data || [];
-                    this.renderInquiries();
-                } catch (err) {
-                    console.error('문의 로드 실패:', err);
-                    this.inquiries = [];
-                    this.renderInquiries();
-                }
-            },
-
-            renderInquiries: function() {
-                const tbody = document.getElementById('inquiryTableBody');
-                if (!tbody) return;
-
-                if (this.inquiries.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">문의가 없습니다.</td></tr>';
-                    return;
-                }
-
-                tbody.innerHTML = this.inquiries.map(i => `
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4">${i.title}</td>
-                        <td class="px-6 py-4">${i.author || '-'}</td>
-                        <td class="px-6 py-4">${i.category || '-'}</td>
-                        <td class="px-6 py-4">${i.created_at?.split('T')[0] || '-'}</td>
-                        <td class="px-6 py-4">
-                            <span class="px-2 py-1 text-xs rounded-full status-${i.status}">
-                                ${i.status === 'pending' ? '대기' : i.status === 'completed' ? '완료' : '진행중'}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <button onclick="unifiedApp.viewInquiry('${i.id}')" class="text-blue-600 hover:text-blue-800">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `).join('');
-            },
-
-            loadNotices: async function() {
-                console.log('📢 공지사항 로드');
-                try {
-                    const { data, error } = await this.sb
-                        .from('notices')
-                        .select('*')
-                        .order('created_at', { ascending: false });
-                    
-                    if (error) throw error;
-                    this.notices = data || [];
-                    this.renderNotices();
-                } catch (err) {
-                    console.error('공지사항 로드 실패:', err);
-                    this.notices = [];
-                    this.renderNotices();
-                }
-            },
-
-            renderNotices: function() {
-                const tbody = document.getElementById('noticeTableBody');
-                if (!tbody) return;
-
-                if (this.notices.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">공지사항이 없습니다.</td></tr>';
-                    return;
-                }
-
-                tbody.innerHTML = this.notices.map(n => `
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4">${n.title}</td>
-                        <td class="px-6 py-4">${n.author || '-'}</td>
-                        <td class="px-6 py-4">${n.created_at?.split('T')[0] || '-'}</td>
-                        <td class="px-6 py-4">
-                            ${n.is_important ? '<span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">중요</span>' : '-'}
-                        </td>
-                        <td class="px-6 py-4">
-                            <button onclick="unifiedApp.editNotice('${n.id}')" class="text-blue-600 hover:text-blue-800 mr-2">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button onclick="unifiedApp.deleteNotice('${n.id}')" class="text-red-600 hover:text-red-800">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `).join('');
-            },
-
-            processQRCode: function() {
-                const qrCode = document.getElementById('qrCodeInput').value;
-                if (!qrCode) {
-                    alert('QR 코드를 입력하세요');
-                    return;
-                }
-                
-                const resultDiv = document.getElementById('qrResult');
-                resultDiv.innerHTML = `
-                    <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-                        <p class="text-green-800 font-semibold"><i class="fas fa-check-circle mr-2"></i>체크인 완료</p>
-                        <p class="text-sm text-green-600 mt-1">QR: ${qrCode}</p>
-                    </div>
-                `;
-                resultDiv.classList.remove('hidden');
-                document.getElementById('qrCodeInput').value = '';
-            },
-
-            // 모달 관리
-            openEmployeeModal: function() {
-                this.showModal('직원 추가', '<p class="text-gray-600">직원 추가 폼 (구현 예정)</p>');
-            },
-            openMemberModal: function() {
-                this.showModal('회원 추가', '<p class="text-gray-600">회원 추가 폼 (구현 예정)</p>');
-            },
-            openPurchaseModal: function() {
-                this.showModal('구매 요청', '<p class="text-gray-600">구매 요청 폼 (구현 예정)</p>');
-            },
-            openVacationModal: function() {
-                this.showModal('휴가 신청', '<p class="text-gray-600">휴가 신청 폼 (구현 예정)</p>');
-            },
-            openInstructorModal: function() {
-                this.showModal('강사 추가', '<p class="text-gray-600">강사 추가 폼 (구현 예정)</p>');
-            },
-            openProgramModal: function() {
-                this.showModal('프로그램 추가', '<p class="text-gray-600">프로그램 추가 폼 (구현 예정)</p>');
-            },
-            openNoticeModal: function() {
-                this.showModal('공지 작성', '<p class="text-gray-600">공지 작성 폼 (구현 예정)</p>');
-            },
-
-            showModal: function(title, body) {
-                document.getElementById('modalTitle').textContent = title;
-                document.getElementById('modalBody').innerHTML = body;
-                document.getElementById('genericModal').style.display = 'block';
-            },
-
-            closeModal: function() {
-                document.getElementById('genericModal').style.display = 'none';
-            },
-
-            // CRUD 메서드들 (간단 구현)
-            editEmployee: function(id) { alert('직원 수정: ' + id); },
-            deleteEmployee: function(id) { if (confirm('삭제하시겠습니까?')) alert('직원 삭제: ' + id); },
-            editMember: function(id) { alert('회원 수정: ' + id); },
-            deleteMember: function(id) { if (confirm('삭제하시겠습니까?')) alert('회원 삭제: ' + id); },
-            approvePurchase: function(id) { alert('구매 승인: ' + id); },
-            rejectPurchase: function(id) { alert('구매 거절: ' + id); },
-            approveVacation: function(id) { alert('휴가 승인: ' + id); },
-            rejectVacation: function(id) { alert('휴가 거절: ' + id); },
-            editInstructor: function(id) { alert('강사 수정: ' + id); },
-            deleteInstructor: function(id) { if (confirm('삭제하시겠습니까?')) alert('강사 삭제: ' + id); },
-            editProgram: function(id) { alert('프로그램 수정: ' + id); },
-            deleteProgram: function(id) { if (confirm('삭제하시겠습니까?')) alert('프로그램 삭제: ' + id); },
-            viewInquiry: function(id) { alert('문의 상세: ' + id); },
-            editNotice: function(id) { alert('공지 수정: ' + id); },
-            deleteNotice: function(id) { if (confirm('삭제하시겠습니까?')) alert('공지 삭제: ' + id); }
-        };
-
-        // 초기화
-        document.addEventListener('DOMContentLoaded', () => {
-            unifiedApp.init();
-        });
-
-        // 모달 외부 클릭 시 닫기
-        window.onclick = function(event) {
-            const modal = document.getElementById('genericModal');
-            if (event.target === modal) {
-                unifiedApp.closeModal();
-            }
-        };
-    </script>
 
 </body>
 </html>
