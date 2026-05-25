@@ -24,6 +24,26 @@ const unifiedApp = {
         this.sb = createSharedSupabaseClient();
         this.updateClock();
         setInterval(() => this.updateClock(), 1000);
+        
+        // 고급 기능 초기화
+        console.log('⚡ 고급 기능 초기화 중...');
+        
+        // 1. Supabase Storage 버킷 초기화
+        try {
+            await FileUploadManager.initializeBuckets();
+            console.log('✅ Storage 버킷 초기화 완료');
+        } catch (err) {
+            console.warn('⚠️ Storage 초기화 실패:', err.message);
+        }
+        
+        // 2. 실시간 알림 구독 초기화 (로그인 후 활성화)
+        // RealtimeNotificationManager.initializeSubscriptions() - login 함수에서 호출
+        
+        // 3. 권한 관리자 초기화
+        RoleManager.init();
+        console.log('✅ 권한 관리 초기화 완료');
+        
+        console.log('✨ 모든 고급 기능 초기화 완료');
     },
 
     login: function() {
@@ -32,6 +52,10 @@ const unifiedApp = {
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('mainDashboard').style.display = 'block';
             this.loadDashboard();
+            
+            // 실시간 알림 구독 시작
+            RealtimeNotificationManager.initializeSubscriptions();
+            console.log('✅ 실시간 알림 구독 시작');
         } else {
             alert('❌ 잘못된 PIN입니다.');
         }
@@ -1706,8 +1730,11 @@ unifiedApp.openWorkGalleryModal = function() {
                 <input type="text" id="wg_area_name" required class="w-full px-4 py-2 border rounded-lg" placeholder="예: 1층 로비"></div>
             <div><label class="block text-sm font-medium text-gray-700 mb-2">작업 날짜 *</label>
                 <input type="date" id="wg_work_date" value="${new Date().toISOString().split('T')[0]}" required class="w-full px-4 py-2 border rounded-lg"></div>
-            <div><label class="block text-sm font-medium text-gray-700 mb-2">사진 (URL)</label>
-                <input type="text" id="wg_photo_url" class="w-full px-4 py-2 border rounded-lg" placeholder="사진 URL"></div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">작업 사진 업로드</label>
+                <input type="file" id="wg_photo_file" accept="image/*" class="w-full px-4 py-2 border rounded-lg" onchange="FileUploadManager.previewImage(this, 'wg_photo_preview')">
+                <div id="wg_photo_preview" class="mt-2"></div>
+            </div>
             <div><label class="block text-sm font-medium text-gray-700 mb-2">메모</label>
                 <textarea id="wg_notes" rows="3" class="w-full px-4 py-2 border rounded-lg" placeholder="작업 내용"></textarea></div>
             <div class="flex space-x-3 pt-4">
@@ -1719,10 +1746,27 @@ unifiedApp.openWorkGalleryModal = function() {
     this.showModal('작업 사진 등록', formHtml);
     document.getElementById('workGalleryForm').onsubmit = async (e) => {
         e.preventDefault();
+        
+        let photoUrl = '';
+        const fileInput = document.getElementById('wg_photo_file');
+        
+        // 파일이 선택된 경우 업로드
+        if (fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            const uploadResult = await FileUploadManager.uploadFile(
+                file, 
+                FileUploadManager.BUCKETS.WORK_PHOTOS, 
+                'apartment'
+            );
+            if (uploadResult) {
+                photoUrl = uploadResult.url;
+            }
+        }
+        
         const workData = {
             area_name: document.getElementById('wg_area_name').value,
             work_date: document.getElementById('wg_work_date').value,
-            photo_url: document.getElementById('wg_photo_url').value,
+            photo_url: photoUrl,
             notes: document.getElementById('wg_notes').value,
             facility_id: FACILITY_IDS.APARTMENT
         };
@@ -1744,8 +1788,11 @@ unifiedApp.viewWorkPhoto = function(workId) {
     if (!work) return;
     const detailHtml = `
         <div class="space-y-4">
-            <div class="h-64 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg flex items-center justify-center">
-                <i class="fas fa-image text-8xl text-gray-400"></i>
+            <div class="h-64 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+                ${work.photo_url ? 
+                    `<img src="${work.photo_url}" alt="작업사진" class="w-full h-full object-cover">` : 
+                    `<i class="fas fa-image text-8xl text-gray-400"></i>`
+                }
             </div>
             <div><p class="text-sm text-gray-500">작업 구역</p><p class="font-medium">${work.area_name}</p></div>
             <div><p class="text-sm text-gray-500">작업 날짜</p><p>${this.formatDate(work.work_date)}</p></div>
@@ -1955,13 +2002,13 @@ unifiedApp.openDocumentModal = function() {
                     <option value="보고서">보고서</option>
                     <option value="기타">기타</option>
                 </select></div>
-            <div><label class="block text-sm font-medium text-gray-700 mb-2">파일 URL</label>
-                <input type="text" id="doc_file_url" class="w-full px-4 py-2 border rounded-lg" placeholder="파일 URL"></div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">파일 업로드</label>
+                <input type="file" id="doc_file_upload" class="w-full px-4 py-2 border rounded-lg" onchange="FileUploadManager.handleFileSelect(this, 'doc_file_info')">
+                <div id="doc_file_info" class="mt-2 text-sm text-gray-600"></div>
+            </div>
             <div><label class="block text-sm font-medium text-gray-700 mb-2">메모</label>
                 <textarea id="doc_notes" rows="3" class="w-full px-4 py-2 border rounded-lg" placeholder="서류 관련 메모"></textarea></div>
-            <div class="bg-yellow-50 p-4 rounded-lg">
-                <p class="text-sm text-yellow-800"><i class="fas fa-exclamation-triangle mr-2"></i>실제 파일 업로드는 Supabase Storage 연동이 필요합니다.</p>
-            </div>
             <div class="flex space-x-3 pt-4">
                 <button type="submit" class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700"><i class="fas fa-save mr-2"></i>등록</button>
                 <button type="button" onclick="unifiedApp.closeModal()" class="flex-1 bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600"><i class="fas fa-times mr-2"></i>취소</button>
@@ -1971,14 +2018,34 @@ unifiedApp.openDocumentModal = function() {
     this.showModal('서류 등록', formHtml);
     document.getElementById('documentForm').onsubmit = async (e) => {
         e.preventDefault();
+        
+        let fileUrl = '';
+        let fileType = 'pdf';
+        let fileSize = 0;
+        
+        const fileInput = document.getElementById('doc_file_upload');
+        if (fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            const uploadResult = await FileUploadManager.uploadFile(
+                file, 
+                FileUploadManager.BUCKETS.DOCUMENTS, 
+                'apartment'
+            );
+            if (uploadResult) {
+                fileUrl = uploadResult.url;
+                fileType = uploadResult.type;
+                fileSize = uploadResult.size;
+            }
+        }
+        
         const docData = {
             title: document.getElementById('doc_title').value,
             category: document.getElementById('doc_category').value,
-            file_url: document.getElementById('doc_file_url').value,
+            file_url: fileUrl,
             notes: document.getElementById('doc_notes').value,
             uploader: 'admin',
-            file_type: 'pdf',
-            file_size: 0,
+            file_type: fileType,
+            file_size: fileSize,
             facility_id: FACILITY_IDS.APARTMENT
         };
         try {
@@ -2146,6 +2213,7 @@ unifiedApp.viewSettlement = function(settlementId) {
             </div>
             ${settlement.description ? `<div><p class="text-sm text-gray-500 mb-2">상세 내역</p><p class="p-4 bg-gray-50 rounded whitespace-pre-wrap">${settlement.description}</p></div>` : ''}
             <div class="flex space-x-3 pt-4">
+                <button onclick="unifiedApp.downloadSettlementPDF('${settlement.id}')" class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700"><i class="fas fa-download mr-2"></i>PDF 다운로드</button>
                 <button onclick="unifiedApp.editSettlement('${settlement.id}')" class="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700"><i class="fas fa-edit mr-2"></i>수정</button>
                 <button onclick="unifiedApp.closeModal()" class="flex-1 bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600"><i class="fas fa-times mr-2"></i>닫기</button>
             </div>
@@ -2157,6 +2225,15 @@ unifiedApp.viewSettlement = function(settlementId) {
 unifiedApp.editSettlement = function(settlementId) {
     this.closeModal();
     setTimeout(() => this.openSettlementModal(settlementId), 100);
+};
+
+unifiedApp.downloadSettlementPDF = async function(settlementId) {
+    const settlement = this.settlements.find(s => s.id === settlementId);
+    if (!settlement) {
+        alert('정산서를 찾을 수 없습니다.');
+        return;
+    }
+    await PDFGenerator.generateSettlementPDF(settlement);
 };
 
 unifiedApp.deleteSettlement = async function(settlementId) {
@@ -2297,10 +2374,13 @@ unifiedApp.viewPayslip = function(payslipId) {
     this.showModal('급여명세서', detailHtml);
 };
 
-unifiedApp.downloadPayslipPDF = function(payslipId) {
+unifiedApp.downloadPayslipPDF = async function(payslipId) {
     const payslip = this.payslips.find(p => p.id === payslipId);
-    if (!payslip) return;
-    this.showNotification('PDF 생성 기능은 jsPDF 라이브러리로 구현 가능합니다.');
+    if (!payslip) {
+        alert('급여명세서를 찾을 수 없습니다.');
+        return;
+    }
+    await PDFGenerator.generatePayslipPDF(payslip);
 };
 
 unifiedApp.deletePayslip = async function(payslipId) {
