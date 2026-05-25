@@ -6,6 +6,7 @@
 CREATE TABLE IF NOT EXISTS facilities (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name TEXT NOT NULL,                    -- 시설명 (예: "e편한세상당정퍼스트드림")
+    system_name TEXT,                      -- 시스템 표시명 (좌측 상단에 표시될 이름)
     type TEXT NOT NULL,                    -- 시설 타입 (apartment, fitness, office 등)
     address TEXT,                          -- 주소
     contact_phone TEXT,                    -- 연락처
@@ -72,10 +73,11 @@ CREATE TRIGGER update_facilities_updated_at
 -- ============================================
 
 -- 기존 아파트 시설 등록
-INSERT INTO facilities (id, name, type, address, contact_phone, manager_name, subscription_plan, is_active)
+INSERT INTO facilities (id, name, system_name, type, address, contact_phone, manager_name, subscription_plan, is_active)
 VALUES 
     ('00000000-0000-0000-0000-000000000001', 
      'e편한세상당정퍼스트드림', 
+     'e편한세상당정 관리시스템',
      'apartment', 
      '충청남도 아산시 배방읍', 
      '041-123-4567', 
@@ -84,6 +86,7 @@ VALUES
      true),
     ('00000000-0000-0000-0000-000000000002', 
      'e편한세상당정 헬스장', 
+     'e편한세상당정 피트니스',
      'fitness', 
      '충청남도 아산시 배방읍', 
      '041-123-4568', 
@@ -92,6 +95,7 @@ VALUES
      true)
 ON CONFLICT (id) DO UPDATE SET
     name = EXCLUDED.name,
+    system_name = EXCLUDED.system_name,
     type = EXCLUDED.type,
     address = EXCLUDED.address,
     contact_phone = EXCLUDED.contact_phone,

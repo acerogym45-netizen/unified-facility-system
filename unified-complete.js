@@ -23,22 +23,61 @@ const unifiedApp = {
         console.log('🚀 통합 시스템 초기화');
         this.sb = createSharedSupabaseClient();
         
-        // 현재 시설 정보 확인 (마스터 관리자에서 진입한 경우)
-        const facilityId = sessionStorage.getItem('current_facility_id');
-        const facilityName = sessionStorage.getItem('current_facility_name');
+        // URL 파라미터에서 facility_id 가져오기
+        const urlParams = new URLSearchParams(window.location.search);
+        const facilityId = urlParams.get('facility');
         
-        if (facilityId && facilityName) {
-            console.log('📍 현재 시설:', facilityName, '(ID:', facilityId, ')');
-            this.currentFacilityId = facilityId;
-            this.currentFacilityName = facilityName;
+        if (facilityId) {
+            console.log('📍 URL 파라미터에서 facility_id 감지:', facilityId);
             
-            // 헤더에 시설명 표시
-            this.updateFacilityHeader();
+            // Supabase에서 facility 정보 가져오기
+            try {
+                const { data: facility, error } = await this.sb
+                    .from('facilities')
+                    .select('*')
+                    .eq('id', facilityId)
+                    .single();
+                
+                if (error) throw error;
+                
+                if (facility) {
+                    this.currentFacilityId = facility.id;
+                    this.currentFacilityName = facility.name;
+                    this.currentFacility = facility;  // 전체 정보 저장
+                    
+                    console.log('✅ 시설 정보 로드:', facility.name);
+                    
+                    // 시설 정보를 세션에도 저장 (새로고침 대비)
+                    sessionStorage.setItem('current_facility_id', facility.id);
+                    sessionStorage.setItem('current_facility_name', facility.name);
+                    sessionStorage.setItem('current_facility_system_name', facility.system_name || facility.name);
+                    
+                    // 헤더에 시스템명 표시
+                    this.updateFacilityHeader(facility.system_name || facility.name);
+                } else {
+                    console.warn('⚠️ 시설 정보를 찾을 수 없습니다');
+                    alert('시설 정보를 찾을 수 없습니다. URL을 확인해주세요.');
+                }
+            } catch (err) {
+                console.error('❌ 시설 정보 로드 실패:', err);
+                alert('시설 정보를 불러올 수 없습니다: ' + err.message);
+            }
         } else {
-            console.log('⚠️ 시설 정보 없음 - 기본 모드로 실행');
-            // 기본 facility_id 사용 (기존 방식)
-            this.currentFacilityId = FACILITY_IDS.APARTMENT;
-            this.currentFacilityName = 'e편한세상당정퍼스트드림';
+            // URL 파라미터 없으면 세션에서 확인
+            const sessionFacilityId = sessionStorage.getItem('current_facility_id');
+            const sessionSystemName = sessionStorage.getItem('current_facility_system_name');
+            
+            if (sessionFacilityId) {
+                console.log('📍 세션에서 facility_id 복원:', sessionFacilityId);
+                this.currentFacilityId = sessionFacilityId;
+                this.currentFacilityName = sessionStorage.getItem('current_facility_name');
+                this.updateFacilityHeader(sessionSystemName || this.currentFacilityName);
+            } else {
+                console.log('⚠️ 시설 정보 없음 - 기본 모드로 실행');
+                // 기본 facility_id 사용 (기존 방식)
+                this.currentFacilityId = FACILITY_IDS.APARTMENT;
+                this.currentFacilityName = 'e편한세상당정퍼스트드림';
+            }
         }
         
         this.updateClock();
@@ -66,27 +105,18 @@ const unifiedApp = {
     },
     
     // 시설명 헤더 업데이트
-    updateFacilityHeader: function() {
-        const header = document.querySelector('header h1');
-        if (header && this.currentFacilityName) {
-            header.innerHTML = `
-                <div class="flex items-center space-x-3">
-                    <span class="text-xl font-bold text-gray-800">${this.currentFacilityName}</span>
-                    <button onclick="unifiedApp.returnToMaster()" 
-                            class="px-3 py-1 bg-purple-100 text-purple-600 text-xs rounded-lg hover:bg-purple-200 transition-all">
-                        <i class="fas fa-arrow-left mr-1"></i>마스터로 돌아가기
-                    </button>
-                </div>
-            `;
+    updateFacilityHeader: function(systemName) {
+        const header = document.querySelector('header .text-xl');
+        if (header && systemName) {
+            header.textContent = systemName;
         }
     },
     
     // 마스터 관리자로 돌아가기
     returnToMaster: function() {
         if (confirm('마스터 관리자 화면으로 돌아가시겠습니까?')) {
-            sessionStorage.removeItem('current_facility_id');
-            sessionStorage.removeItem('current_facility_name');
-            window.location.href = 'master-admin.html';
+            // Vercel 배포된 마스터 관리자로 이동
+            window.location.href = 'https://unified-facility-master.vercel.app/';
         }
     },
 

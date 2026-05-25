@@ -297,12 +297,12 @@ const masterApp = {
             return;
         }
 
-        // facility_id를 세션 스토리지에 저장
-        sessionStorage.setItem('current_facility_id', facilityId);
-        sessionStorage.setItem('current_facility_name', facility.name);
+        // URL 파라미터 방식으로 이동
+        const baseUrl = 'https://unified-facility-system.vercel.app/';
+        const url = `${baseUrl}?facility=${facilityId}`;
         
-        // 통합 관리 시스템으로 이동
-        window.location.href = 'index.html';
+        // 새 탭에서 열기 (또는 window.location.href = url로 현재 탭에서 이동)
+        window.open(url, '_blank');
     },
 
     // 시설 상세 보기
@@ -374,8 +374,12 @@ document.addEventListener('DOMContentLoaded', () => {
         form.onsubmit = async (e) => {
             e.preventDefault();
             
+            const name = document.getElementById('facility_name').value;
+            const systemName = document.getElementById('facility_system_name').value;
+            
             const facilityData = {
-                name: document.getElementById('facility_name').value,
+                name: name,
+                system_name: systemName || name,  // 비어있으면 시설명 사용
                 type: document.getElementById('facility_type').value,
                 address: document.getElementById('facility_address').value,
                 contact_phone: document.getElementById('facility_phone').value,
