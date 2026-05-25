@@ -63,7 +63,7 @@ unifiedApp.openAreaModal = function(areaId = null) {
             name: document.getElementById('area_name').value,
             description: document.getElementById('area_description').value,
             is_active: document.getElementById('area_is_active').checked,
-            facility_id: FACILITY_IDS.APARTMENT
+            facility_id: this.currentFacilityId || FACILITY_IDS.APARTMENT
         };
         if (!isEdit) {
             areaData.qr_code = 'AREA-' + this.generateQRCode();
@@ -205,7 +205,7 @@ unifiedApp.openWorkGalleryModal = function() {
             work_date: document.getElementById('wg_work_date').value,
             photo_url: photoUrl,
             notes: document.getElementById('wg_notes').value,
-            facility_id: FACILITY_IDS.APARTMENT
+            facility_id: this.currentFacilityId || FACILITY_IDS.APARTMENT
         };
         try {
             const { error } = await this.sb.from('work_gallery').insert([workData]);
@@ -314,7 +314,7 @@ unifiedApp.openWorkLogModal = function(logId = null) {
             work_type: document.getElementById('wl_type').value,
             description: document.getElementById('wl_description').value,
             special_notes: document.getElementById('wl_notes').value,
-            facility_id: FACILITY_IDS.APARTMENT
+            facility_id: this.currentFacilityId || FACILITY_IDS.APARTMENT
         };
         try {
             if (isEdit) {
@@ -483,7 +483,7 @@ unifiedApp.openDocumentModal = function() {
             uploader: 'admin',
             file_type: fileType,
             file_size: fileSize,
-            facility_id: FACILITY_IDS.APARTMENT
+            facility_id: this.currentFacilityId || FACILITY_IDS.APARTMENT
         };
         try {
             const { error } = await this.sb.from('documents').insert([docData]);
@@ -614,7 +614,7 @@ unifiedApp.openSettlementModal = function(settlementId = null) {
             amount: parseFloat(document.getElementById('sett_amount').value),
             description: document.getElementById('sett_description').value,
             is_paid: document.getElementById('sett_is_paid').checked,
-            facility_id: FACILITY_IDS.APARTMENT
+            facility_id: this.currentFacilityId || FACILITY_IDS.APARTMENT
         };
         try {
             if (isEdit) {
@@ -764,7 +764,7 @@ unifiedApp.openPayslipModal = function(payslipId = null) {
             deduction: parseFloat(document.getElementById('pay_deduction').value) || 0,
             net_salary: parseFloat(document.getElementById('pay_net_salary').value),
             is_paid: document.getElementById('pay_is_paid').checked,
-            facility_id: FACILITY_IDS.APARTMENT
+            facility_id: this.currentFacilityId || FACILITY_IDS.APARTMENT
         };
         try {
             if (isEdit) {

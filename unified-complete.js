@@ -22,6 +22,25 @@ const unifiedApp = {
     init: async function() {
         console.log('🚀 통합 시스템 초기화');
         this.sb = createSharedSupabaseClient();
+        
+        // 현재 시설 정보 확인 (마스터 관리자에서 진입한 경우)
+        const facilityId = sessionStorage.getItem('current_facility_id');
+        const facilityName = sessionStorage.getItem('current_facility_name');
+        
+        if (facilityId && facilityName) {
+            console.log('📍 현재 시설:', facilityName, '(ID:', facilityId, ')');
+            this.currentFacilityId = facilityId;
+            this.currentFacilityName = facilityName;
+            
+            // 헤더에 시설명 표시
+            this.updateFacilityHeader();
+        } else {
+            console.log('⚠️ 시설 정보 없음 - 기본 모드로 실행');
+            // 기본 facility_id 사용 (기존 방식)
+            this.currentFacilityId = FACILITY_IDS.APARTMENT;
+            this.currentFacilityName = 'e편한세상당정퍼스트드림';
+        }
+        
         this.updateClock();
         setInterval(() => this.updateClock(), 1000);
         
@@ -44,6 +63,31 @@ const unifiedApp = {
         console.log('✅ 권한 관리 초기화 완료');
         
         console.log('✨ 모든 고급 기능 초기화 완료');
+    },
+    
+    // 시설명 헤더 업데이트
+    updateFacilityHeader: function() {
+        const header = document.querySelector('header h1');
+        if (header && this.currentFacilityName) {
+            header.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <span class="text-xl font-bold text-gray-800">${this.currentFacilityName}</span>
+                    <button onclick="unifiedApp.returnToMaster()" 
+                            class="px-3 py-1 bg-purple-100 text-purple-600 text-xs rounded-lg hover:bg-purple-200 transition-all">
+                        <i class="fas fa-arrow-left mr-1"></i>마스터로 돌아가기
+                    </button>
+                </div>
+            `;
+        }
+    },
+    
+    // 마스터 관리자로 돌아가기
+    returnToMaster: function() {
+        if (confirm('마스터 관리자 화면으로 돌아가시겠습니까?')) {
+            sessionStorage.removeItem('current_facility_id');
+            sessionStorage.removeItem('current_facility_name');
+            window.location.href = 'master-admin.html';
+        }
     },
 
     login: function() {
@@ -245,14 +289,21 @@ window.onclick = function(event) {
 unifiedApp.loadEmployees = async function() {
     console.log('👥 직원 목록 로드');
     try {
-        const { data, error } = await this.sb
+        let query = this.sb
             .from('employees')
-            .select('*')
-            .order('name');
+            .select('*');
+        
+        // 현재 시설 필터 적용
+        if (this.currentFacilityId) {
+            query = query.eq('facility_id', this.currentFacilityId);
+        }
+        
+        const { data, error } = await query.order('name');
         
         if (error) throw error;
         this.employees = data || [];
         this.renderEmployees();
+        console.log(`✅ 직원 ${this.employees.length}명 로드됨`);
     } catch (err) {
         console.error('직원 로드 실패:', err);
         this.employees = [];
@@ -371,7 +422,7 @@ unifiedApp.openEmployeeModal = function(employeeId = null) {
             email: document.getElementById('emp_email').value,
             hire_date: document.getElementById('emp_hire_date').value,
             is_active: document.getElementById('emp_is_active').checked,
-            facility_id: FACILITY_IDS.APARTMENT
+            facility_id: this.currentFacilityId || FACILITY_IDS.APARTMENT
         };
         
         if (!isEdit) {
@@ -496,14 +547,21 @@ unifiedApp.deleteEmployee = async function(employeeId) {
 unifiedApp.loadMembers = async function() {
     console.log('👥 회원 목록 로드');
     try {
-        const { data, error } = await this.sb
+        let query = this.sb
             .from('members')
-            .select('*')
-            .order('name');
+            .select('*');
+        
+        // 현재 시설 필터 적용
+        if (this.currentFacilityId) {
+            query = query.eq('facility_id', this.currentFacilityId);
+        }
+        
+        const { data, error } = await query.order('name');
         
         if (error) throw error;
         this.members = data || [];
         this.renderMembers();
+        console.log(`✅ 회원 ${this.members.length}명 로드됨`);
     } catch (err) {
         console.error('회원 로드 실패:', err);
         this.members = [];
@@ -635,7 +693,7 @@ unifiedApp.openMemberModal = function(memberId = null) {
             end_date: document.getElementById('mem_end_date').value,
             notes: document.getElementById('mem_notes').value,
             is_active: document.getElementById('mem_is_active').checked,
-            facility_id: FACILITY_IDS.FITNESS
+            facility_id: this.currentFacilityId || FACILITY_IDS.FITNESS
         };
         
         try {
@@ -871,7 +929,7 @@ unifiedApp.openPurchaseModal = function(purchaseId = null) {
             reason: document.getElementById('purch_reason').value,
             status: 'pending',
             request_date: new Date().toISOString().split('T')[0],
-            facility_id: FACILITY_IDS.APARTMENT
+            facility_id: this.currentFacilityId || FACILITY_IDS.APARTMENT
         };
         
         try {
@@ -1092,7 +1150,7 @@ unifiedApp.openVacationModal = function(vacationId = null) {
             end_date: document.getElementById('vac_end_date').value,
             reason: document.getElementById('vac_reason').value,
             status: 'pending',
-            facility_id: FACILITY_IDS.APARTMENT
+            facility_id: this.currentFacilityId || FACILITY_IDS.APARTMENT
         };
         try {
             if (isEdit) {
@@ -1205,7 +1263,7 @@ unifiedApp.openInstructorModal = function(instructorId = null) {
             phone: document.getElementById('inst_phone').value,
             email: document.getElementById('inst_email').value,
             is_active: document.getElementById('inst_is_active').checked,
-            facility_id: FACILITY_IDS.FITNESS
+            facility_id: this.currentFacilityId || FACILITY_IDS.FITNESS
         };
         try {
             if (isEdit) {
@@ -1313,7 +1371,7 @@ unifiedApp.openProgramModal = function(programId = null) {
             max_participants: parseInt(document.getElementById('prog_max_participants').value) || null,
             description: document.getElementById('prog_description').value,
             is_active: document.getElementById('prog_is_active').checked,
-            facility_id: FACILITY_IDS.FITNESS
+            facility_id: this.currentFacilityId || FACILITY_IDS.FITNESS
         };
         try {
             if (isEdit) {
@@ -1465,7 +1523,7 @@ unifiedApp.openNoticeModal = function(noticeId = null) {
             content: document.getElementById('notice_content').value,
             is_important: document.getElementById('notice_important').checked,
             author: 'admin',
-            facility_id: FACILITY_IDS.APARTMENT
+            facility_id: this.currentFacilityId || FACILITY_IDS.APARTMENT
         };
         try {
             if (isEdit) {
@@ -1626,7 +1684,7 @@ unifiedApp.openAreaModal = function(areaId = null) {
             name: document.getElementById('area_name').value,
             description: document.getElementById('area_description').value,
             is_active: document.getElementById('area_is_active').checked,
-            facility_id: FACILITY_IDS.APARTMENT
+            facility_id: this.currentFacilityId || FACILITY_IDS.APARTMENT
         };
         if (!isEdit) {
             areaData.qr_code = 'AREA-' + this.generateQRCode();
@@ -1768,7 +1826,7 @@ unifiedApp.openWorkGalleryModal = function() {
             work_date: document.getElementById('wg_work_date').value,
             photo_url: photoUrl,
             notes: document.getElementById('wg_notes').value,
-            facility_id: FACILITY_IDS.APARTMENT
+            facility_id: this.currentFacilityId || FACILITY_IDS.APARTMENT
         };
         try {
             const { error } = await this.sb.from('work_gallery').insert([workData]);
@@ -1877,7 +1935,7 @@ unifiedApp.openWorkLogModal = function(logId = null) {
             work_type: document.getElementById('wl_type').value,
             description: document.getElementById('wl_description').value,
             special_notes: document.getElementById('wl_notes').value,
-            facility_id: FACILITY_IDS.APARTMENT
+            facility_id: this.currentFacilityId || FACILITY_IDS.APARTMENT
         };
         try {
             if (isEdit) {
@@ -2046,7 +2104,7 @@ unifiedApp.openDocumentModal = function() {
             uploader: 'admin',
             file_type: fileType,
             file_size: fileSize,
-            facility_id: FACILITY_IDS.APARTMENT
+            facility_id: this.currentFacilityId || FACILITY_IDS.APARTMENT
         };
         try {
             const { error } = await this.sb.from('documents').insert([docData]);
@@ -2177,7 +2235,7 @@ unifiedApp.openSettlementModal = function(settlementId = null) {
             amount: parseFloat(document.getElementById('sett_amount').value),
             description: document.getElementById('sett_description').value,
             is_paid: document.getElementById('sett_is_paid').checked,
-            facility_id: FACILITY_IDS.APARTMENT
+            facility_id: this.currentFacilityId || FACILITY_IDS.APARTMENT
         };
         try {
             if (isEdit) {
@@ -2327,7 +2385,7 @@ unifiedApp.openPayslipModal = function(payslipId = null) {
             deduction: parseFloat(document.getElementById('pay_deduction').value) || 0,
             net_salary: parseFloat(document.getElementById('pay_net_salary').value),
             is_paid: document.getElementById('pay_is_paid').checked,
-            facility_id: FACILITY_IDS.APARTMENT
+            facility_id: this.currentFacilityId || FACILITY_IDS.APARTMENT
         };
         try {
             if (isEdit) {

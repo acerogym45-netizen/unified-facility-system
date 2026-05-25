@@ -76,7 +76,7 @@ unifiedApp.openVacationModal = function(vacationId = null) {
             end_date: document.getElementById('vac_end_date').value,
             reason: document.getElementById('vac_reason').value,
             status: 'pending',
-            facility_id: FACILITY_IDS.APARTMENT
+            facility_id: this.currentFacilityId || FACILITY_IDS.APARTMENT
         };
         try {
             if (isEdit) {
@@ -189,7 +189,7 @@ unifiedApp.openInstructorModal = function(instructorId = null) {
             phone: document.getElementById('inst_phone').value,
             email: document.getElementById('inst_email').value,
             is_active: document.getElementById('inst_is_active').checked,
-            facility_id: FACILITY_IDS.FITNESS
+            facility_id: this.currentFacilityId || FACILITY_IDS.FITNESS
         };
         try {
             if (isEdit) {
@@ -297,7 +297,7 @@ unifiedApp.openProgramModal = function(programId = null) {
             max_participants: parseInt(document.getElementById('prog_max_participants').value) || null,
             description: document.getElementById('prog_description').value,
             is_active: document.getElementById('prog_is_active').checked,
-            facility_id: FACILITY_IDS.FITNESS
+            facility_id: this.currentFacilityId || FACILITY_IDS.FITNESS
         };
         try {
             if (isEdit) {
@@ -449,7 +449,7 @@ unifiedApp.openNoticeModal = function(noticeId = null) {
             content: document.getElementById('notice_content').value,
             is_important: document.getElementById('notice_important').checked,
             author: 'admin',
-            facility_id: FACILITY_IDS.APARTMENT
+            facility_id: this.currentFacilityId || FACILITY_IDS.APARTMENT
         };
         try {
             if (isEdit) {

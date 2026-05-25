@@ -117,7 +117,7 @@ unifiedApp.openPurchaseModal = function(purchaseId = null) {
             reason: document.getElementById('purch_reason').value,
             status: 'pending',
             request_date: new Date().toISOString().split('T')[0],
-            facility_id: FACILITY_IDS.APARTMENT
+            facility_id: this.currentFacilityId || FACILITY_IDS.APARTMENT
         };
         
         try {

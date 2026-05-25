@@ -22,6 +22,25 @@ const unifiedApp = {
     init: async function() {
         console.log('🚀 통합 시스템 초기화');
         this.sb = createSharedSupabaseClient();
+        
+        // 현재 시설 정보 확인 (마스터 관리자에서 진입한 경우)
+        const facilityId = sessionStorage.getItem('current_facility_id');
+        const facilityName = sessionStorage.getItem('current_facility_name');
+        
+        if (facilityId && facilityName) {
+            console.log('📍 현재 시설:', facilityName, '(ID:', facilityId, ')');
+            this.currentFacilityId = facilityId;
+            this.currentFacilityName = facilityName;
+            
+            // 헤더에 시설명 표시
+            this.updateFacilityHeader();
+        } else {
+            console.log('⚠️ 시설 정보 없음 - 기본 모드로 실행');
+            // 기본 facility_id 사용 (기존 방식)
+            this.currentFacilityId = FACILITY_IDS.APARTMENT;
+            this.currentFacilityName = 'e편한세상당정퍼스트드림';
+        }
+        
         this.updateClock();
         setInterval(() => this.updateClock(), 1000);
         
@@ -44,6 +63,31 @@ const unifiedApp = {
         console.log('✅ 권한 관리 초기화 완료');
         
         console.log('✨ 모든 고급 기능 초기화 완료');
+    },
+    
+    // 시설명 헤더 업데이트
+    updateFacilityHeader: function() {
+        const header = document.querySelector('header h1');
+        if (header && this.currentFacilityName) {
+            header.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <span class="text-xl font-bold text-gray-800">${this.currentFacilityName}</span>
+                    <button onclick="unifiedApp.returnToMaster()" 
+                            class="px-3 py-1 bg-purple-100 text-purple-600 text-xs rounded-lg hover:bg-purple-200 transition-all">
+                        <i class="fas fa-arrow-left mr-1"></i>마스터로 돌아가기
+                    </button>
+                </div>
+            `;
+        }
+    },
+    
+    // 마스터 관리자로 돌아가기
+    returnToMaster: function() {
+        if (confirm('마스터 관리자 화면으로 돌아가시겠습니까?')) {
+            sessionStorage.removeItem('current_facility_id');
+            sessionStorage.removeItem('current_facility_name');
+            window.location.href = 'master-admin.html';
+        }
     },
 
     login: function() {

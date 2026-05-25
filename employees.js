@@ -2,14 +2,21 @@
 unifiedApp.loadEmployees = async function() {
     console.log('👥 직원 목록 로드');
     try {
-        const { data, error } = await this.sb
+        let query = this.sb
             .from('employees')
-            .select('*')
-            .order('name');
+            .select('*');
+        
+        // 현재 시설 필터 적용
+        if (this.currentFacilityId) {
+            query = query.eq('facility_id', this.currentFacilityId);
+        }
+        
+        const { data, error } = await query.order('name');
         
         if (error) throw error;
         this.employees = data || [];
         this.renderEmployees();
+        console.log(`✅ 직원 ${this.employees.length}명 로드됨`);
     } catch (err) {
         console.error('직원 로드 실패:', err);
         this.employees = [];
@@ -128,7 +135,7 @@ unifiedApp.openEmployeeModal = function(employeeId = null) {
             email: document.getElementById('emp_email').value,
             hire_date: document.getElementById('emp_hire_date').value,
             is_active: document.getElementById('emp_is_active').checked,
-            facility_id: FACILITY_IDS.APARTMENT
+            facility_id: this.currentFacilityId || FACILITY_IDS.APARTMENT
         };
         
         if (!isEdit) {
