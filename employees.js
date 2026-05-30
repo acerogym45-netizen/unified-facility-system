@@ -95,6 +95,33 @@ unifiedApp.openEmployeeModal = function(employeeId = null) {
                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
             </div>
             
+            <!-- 주말 근무시간 섹션 -->
+            <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-3">
+                <div class="flex items-center mb-2">
+                    <i class="fas fa-calendar-week text-amber-600 mr-2"></i>
+                    <label class="text-sm font-medium text-gray-700">주말 근무시간 (토·일)</label>
+                    <span class="ml-2 text-xs text-gray-500">(선택사항)</span>
+                </div>
+                <p class="text-xs text-gray-600 mb-3">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    주말 근무시간이 평일과 다른 경우에만 입력하세요. 미입력시 평일 근무시간이 적용됩니다.
+                </p>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs text-gray-600 mb-1">시작 시간</label>
+                        <input type="time" id="emp_weekend_start" value="${employee?.weekend_start_time || ''}"
+                               placeholder="예: 09:00"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-600 mb-1">종료 시간</label>
+                        <input type="time" id="emp_weekend_end" value="${employee?.weekend_end_time || ''}"
+                               placeholder="예: 18:00"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500">
+                    </div>
+                </div>
+            </div>
+            
             ${isEdit ? '' : `
             <div class="bg-blue-50 p-4 rounded-lg">
                 <p class="text-sm text-blue-800">
@@ -134,6 +161,8 @@ unifiedApp.openEmployeeModal = function(employeeId = null) {
             phone: document.getElementById('emp_phone').value,
             email: document.getElementById('emp_email').value,
             hire_date: document.getElementById('emp_hire_date').value,
+            weekend_start_time: document.getElementById('emp_weekend_start').value || null,
+            weekend_end_time: document.getElementById('emp_weekend_end').value || null,
             is_active: document.getElementById('emp_is_active').checked,
             facility_id: this.currentFacilityId || FACILITY_IDS.APARTMENT
         };
@@ -204,6 +233,21 @@ unifiedApp.viewEmployee = function(employeeId) {
                 </div>
             </div>
             
+            ${employee.weekend_start_time && employee.weekend_end_time ? `
+            <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <p class="text-sm text-gray-500 mb-2">
+                    <i class="fas fa-calendar-week text-amber-600 mr-2"></i>주말 근무시간 (토·일)
+                </p>
+                <p class="font-medium text-lg">
+                    ${employee.weekend_start_time} ~ ${employee.weekend_end_time}
+                </p>
+                <p class="text-xs text-gray-600 mt-2">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    평일과 다른 주말 근무시간이 설정되어 있습니다.
+                </p>
+            </div>
+            ` : ''}
+            
             <div class="bg-gray-50 p-4 rounded-lg">
                 <p class="text-sm text-gray-500 mb-2">QR 코드</p>
                 <div class="flex items-center space-x-4">
@@ -255,4 +299,44 @@ unifiedApp.deleteEmployee = async function(employeeId) {
         console.error('직원 삭제 실패:', err);
         alert('오류가 발생했습니다: ' + err.message);
     }
+};
+
+// 직원의 근무시간 가져오기 (평일/주말 자동 구분)
+unifiedApp.getEmployeeWorkTime = function(employee, date = new Date()) {
+    const dayOfWeek = date.getDay(); // 0=일요일, 6=토요일
+    const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+    
+    // 주말이고 주말 근무시간이 설정되어 있으면 주말 근무시간 사용
+    if (isWeekend && employee.weekend_start_time && employee.weekend_end_time) {
+        return {
+            start_time: employee.weekend_start_time,
+            end_time: employee.weekend_end_time,
+            is_weekend: true
+        };
+    }
+    
+    // 그 외의 경우 평일 근무시간 사용 (또는 기본값)
+    return {
+        start_time: employee.work_start_time || '09:00',
+        end_time: employee.work_end_time || '18:00',
+        is_weekend: false
+    };
+};
+
+// 근무시간 체크 예시 (근태관리 등에서 활용)
+unifiedApp.checkAttendanceTime = function(employee, checkTime = new Date()) {
+    const workTime = this.getEmployeeWorkTime(employee, checkTime);
+    const currentTimeStr = checkTime.toTimeString().substring(0, 5); // HH:MM 형식
+    
+    const isLate = currentTimeStr > workTime.start_time;
+    const isEarly = currentTimeStr < workTime.end_time;
+    
+    return {
+        work_start: workTime.start_time,
+        work_end: workTime.end_time,
+        current_time: currentTimeStr,
+        is_weekend: workTime.is_weekend,
+        is_late: isLate,
+        status: isLate ? '지각' : '정상'
+    };
 };
